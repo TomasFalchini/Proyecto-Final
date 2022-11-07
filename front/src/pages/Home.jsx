@@ -2,17 +2,22 @@ import React from 'react';
 import HomeList from '../components/HomeList';
 import Carousel from '../components/Carousel';
 import PopularPlants from '../components/PopularPlants';
-import Comentarios from "../components/Comentarios"
+import Discount from '../components/Discount';
 
 
 
-const Home = () => {
+
+
+const Home = ({isSearch}) => {
 
   
 
     return (
-        <div className='home'>        
-          {/* <Carousel/> */}
+        <div >     
+         <Discount/>
+         <Carousel isSearch={isSearch}/>
+         
+       
           <PopularPlants/>
           <HomeList/>            
           {/* <Comentarios/> */}

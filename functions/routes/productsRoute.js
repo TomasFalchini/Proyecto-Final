@@ -77,22 +77,23 @@ productsRoute
     const {
       categories,
       details,
-      imageUrl,
-      planter,
+      image,
+      place,
       name,
       price,
       size,
       stock,
       type,
       uid,
+      logicalDeletion,
     } = req.body;
 
     try {
       if (
         !categories ||
         !details ||
-        !imageUrl ||
-        !planter ||
+        !image ||
+        !place ||
         !name ||
         !price ||
         !size ||
@@ -105,21 +106,18 @@ productsRoute
         const product = {
           categories,
           details,
-          imageUrl,
-          planter,
+          image,
+          place,
           name,
           price,
           size,
           stock,
           type,
           uid,
+          logicalDeletion,
         };
-        const id = await createNewProduct(product, uid);
-        res.status(203).send({
-          message: "Created",
-          id: id.id,
-          data: product,
-        });
+        const newProduct = await createNewProduct(product, uid);
+        res.status(203).send(newProduct);
       }
     } catch (err) {
       err.status = 404;
@@ -133,7 +131,7 @@ productsRoute
     const data = req.body;
     try {
       const product = await updateProduct(id, data);
-      res.status(200).send({ message: "Updated", id: product.id });
+      res.status(200).send({ message: "Updated", data: product });
     } catch (err) {
       res.status(404).send(err.message);
     }
@@ -156,6 +154,18 @@ productsRoute
     } catch (err) {
       err.status = 404;
       next(err);
+    }
+  }) */
+
+/* .get("/chargefirsttime", async (req, res, next) => {
+    try {
+      let array = plants.map((d) => {
+        return db.collection("products").add({ ...d, type: "plant" });
+      });
+      await Promise.all(array);
+      return res.status(200).send("done");
+    } catch (err) {
+      return res.send(err);
     }
   }) */
 

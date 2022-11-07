@@ -6,6 +6,7 @@ import {
   DELETE_ALL,
   PURCHASE,
   LOAD_CART,
+  CLEAR_CART,
 } from "../../actions/shopCart/actiontypes.js";
 
 /* 
@@ -24,14 +25,17 @@ export default function shopCartReducer(state = initialState, action) {
   if (action.type === ADD_PRODUCT) {
     if (
       state.products.filter((p) => {
-        return p.id === action.payload.id;
+        return p.id === action.payload[0].id;
       }).length > 0
     ) {
       return state;
     }
-  
+
     return {
-      products: [...state.products, { ...action.payload, count: 1 }],
+      products: [
+        ...state.products,
+        { ...action.payload[0], count: action.payload[1] },
+      ],
     };
   }
   if (action.type === DELETE_PRODUCT) {
@@ -43,7 +47,7 @@ export default function shopCartReducer(state = initialState, action) {
   }
   if (action.type === CHANGE_QUANTITY) {
     const products = Array.from(state.products).map((p) => {
-      if ((p.id == action.payload[0])) {
+      if (p.id == action.payload[0]) {
         return { ...p, count: p.count + action.payload[1] };
       } else return p;
     });
@@ -58,11 +62,14 @@ export default function shopCartReducer(state = initialState, action) {
     return initialState;
   }
   if (action.type === LOAD_CART) {
-    return { products: action.payload };
+    if (action.payload.length > 0) return { products: action.payload };
+    else return state;
   }
   if (action.type === SAVE_CART) {
     return state;
   }
-
+  if (action.type === CLEAR_CART) {
+    return initialState;
+  }
   return state;
 }
