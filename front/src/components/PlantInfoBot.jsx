@@ -11,8 +11,8 @@ const PlantInfoBot = () => {
   const dispatch = useDispatch();
   function handleSearch(e) {
     e.preventDefault();
-    setSearch(e.target.value);
-  }
+   setSearch(e.target.value)};
+  
 
   const searchedPlant = plant.find((p) =>
     p.data?.name?.toLowerCase().includes(search.toLowerCase())
@@ -57,6 +57,7 @@ const PlantInfoBot = () => {
           {
              !plantDetail?.details.length && details?.hasOwnProperty("id") ?"this plant is not in our store":null
           }
+          
      
       </p>
     </div>

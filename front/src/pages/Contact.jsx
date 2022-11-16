@@ -64,7 +64,7 @@ const Contact = () => {
                     <li>
 
                     <a
-              href="https://github.com/jmbvdev/Proyecto-Final/tree/main"
+              href="https://github.com/calatheamarketsapp"
               target="_blank"
               rel="noopener noreferrer"
             >

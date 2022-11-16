@@ -130,7 +130,6 @@ z-index: 2;
 }
 .reset{
   font-size: 30px;
-
  color: #d5dcdb;
 cursor: pointer;
 background-color: transparent;
@@ -140,12 +139,13 @@ background-color: transparent;
   justify-content: center;
   align-items: center;
   margin: 20px;
+  
 }
 .reset_container{
-margin-left: 20px;
+margin-left: 80px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-around;
   align-items: center;
   text-align: center;
 }

@@ -46,7 +46,7 @@ const Footer = () => {
               <GrMail />
             </i>
             <p>
-              <a href="calatheaMarket@gmail.com">calatheaMarket@gmail.com</a>
+              <a href="https://api-plants-b6153.web.app/contact">calathea_market@outlook.com</a>
             </p>
           </div>
         </div>
@@ -67,14 +67,14 @@ const Footer = () => {
               <TiSocialInstagram />
             </a>
             <a
-              href="https://github.com/jmbvdev/Proyecto-Final/tree/main"
+              href="https://github.com/calatheamarketsapp"
               target="_blank"
               rel="noopener noreferrer"
             >
               <FaGithubSquare />
             </a>
             <a
-              href="https://www.facebook.com/"
+              href="https://www.facebook.com/profile.php?id=100087461577895m/"
               target="_blank"
               rel="noopener noreferrer"
             >
