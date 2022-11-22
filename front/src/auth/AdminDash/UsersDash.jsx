@@ -1,10 +1,14 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { useTable } from 'react-table';
+import { useGlobalFilter, useSortBy, useTable, usePagination } from 'react-table';
 import {IoIosArrowBack}from "react-icons/io"
 import s from "../../styles/adminNav.module.css"
 import { useState } from "react";
+import GlobalFilter from "./GlobalFilter";
+import Loading from "../../components/Loading";
+import {BiDetail} from "react-icons/bi";
+import { GrFormNext, GrFormPrevious } from "react-icons/gr";
 
 const UsersDash = () => {
     
@@ -28,7 +32,8 @@ const UsersDash = () => {
     }, [allUsers]);
 
   const handleBack = () => {
-    navigate(-1);
+    navigate('/dashboard');
+    window.scrollTo(0, {behavior: 'smooth'})
   };
 
     const Table = ({ columns, data}) => {
@@ -37,22 +42,41 @@ const UsersDash = () => {
             getTableBodyProps,
             headerGroups,
             rows,
-            prepareRow
-        } = useTable({columns, data}, tableHooks)
+            prepareRow,
+            preGlobalFilteredRows,
+            setGlobalFilter,
+            state,
+            page,
+            nextPage,
+            previousPage,
+            canNextPage,
+            canPreviousPage
+        } = useTable({columns, data}, useGlobalFilter, tableHooks, useSortBy, usePagination)
 
     return (
+      <>
+      
+      {allUsers.length ? (
+            <>
+       <GlobalFilter preGlobalFilteredRows={preGlobalFilteredRows} setGlobalFilter={setGlobalFilter} globalFilter={state.globalFilter} />
+       <div className={s.pages}>
+          <button onClick={() => previousPage()} disabled={!canPreviousPage} className={s.pages_icon}><GrFormPrevious className={s.arrow}/></button>
+          
+          <button onClick={() => nextPage()} disabled={!canNextPage} className={s.pages_icon}><GrFormNext className={s.arrow} /></button>
+       </div>
       <table {...getTableProps()} className={s.table}>
         <thead>
           {headerGroups.map((headerGroup) => (
             <tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()}>{column.render("Header")}</th>
+                <th {...column.getHeaderProps(column.getSortByToggleProps())}>{column.render("Header")}
+                {column.isSorted ? (column.isSortedDesc ? "▼" :  "▲") : ""}</th>
               ))}
             </tr>
           ))}
         </thead>
-        <tbody {...getTableBodyProps()} >
-          {rows.map((row, i) => {
+        <tbody {...getTableBodyProps()}  >
+          {page.map((row, i) => {
             prepareRow(row);
             return (
               <tr {...row.getRowProps()}>
@@ -64,6 +88,11 @@ const UsersDash = () => {
                 })}
               </tbody>
             </table>
+            </>
+           ) :
+            <Loading />
+          }
+            </>
           )
         };
   
@@ -105,7 +134,12 @@ const UsersDash = () => {
                id: 'Detail',
                Header: 'Detail',
                Cell: ({row}) => (
-                 <Link to={`/users/detail/${row.values.uid}`}>DETAIL</Link>
+                <div onClick={()=>{
+                  navigate(`/users/detail/${row.values.uid}`)
+                  window.scrollTo(0, {behavior: 'smooth'})
+                  }} className={s.details_icon_container}>
+                <BiDetail className={s.details_icon} />
+                </div>
                )
              }
            ])
@@ -118,9 +152,6 @@ const UsersDash = () => {
               <IoIosArrowBack/>
             </button>
 
-          </div>
-          <div>
-            
           </div>
             <Table columns={columns} data={data} />
         </div>

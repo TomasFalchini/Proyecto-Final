@@ -3,12 +3,13 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { clearDetails, GetProductDetails } from "../Redux/actions/products";
-import { GiTable } from "react-icons/gi";
+import { GiLindenLeaf, GiTable } from "react-icons/gi";
 import { TbPlant2 } from "react-icons/tb";
 import { FaComment, FaCommentDots, FaDog } from "react-icons/fa";
+import { SiThymeleaf } from "react-icons/si";
 import s from "../styles/details.module.css";
 import { useState } from "react";
-import { FaRegEdit } from "react-icons/fa";
+import { RiEdit2Fill } from "react-icons/ri";
 import { addProduct, saveCart } from "../Redux/actions/shopCart";
 import Loading from "../components/Loading";
 import Swal from "sweetalert2";
@@ -19,12 +20,15 @@ import Reviews from "./Reviews";
 import View_Reviews from "../components/View_Reviews";
 import { AiFillStar } from "react-icons/ai";
 import axios from "axios";
+import MoreSizes from "../components/MoreSizes";
+import { IoIosArrowBack } from "react-icons/io";
 
 const PlantsDetails = () => {
   const dispatch = useDispatch();
   const plant = useSelector(
     (state) => state.productsReducer.productDetails.data
   );
+
   const currentUser = useSelector((state) => state.usersReducer.currentUser);
   const cart = useSelector((state) => state.shopCartReducer.products);
 
@@ -43,7 +47,7 @@ const PlantsDetails = () => {
     transform: "translate(-50%, -50%)",
     bgcolor: "transparent",
     border: "none",
-    p: 4,
+    p: 0,
   };
   const styleReview = {
     position: "absolute",
@@ -52,12 +56,12 @@ const PlantsDetails = () => {
     transform: "translate(-50%, -50%)",
     bgcolor: "transparent",
     border: "none",
-    p: 4,
+    p: 0,
   };
 
   useEffect(() => {
     dispatch(GetProductDetails(id));
-    return function () {
+    return function() {
       dispatch(clearDetails());
     };
   }, []);
@@ -71,7 +75,6 @@ const PlantsDetails = () => {
         )
         //  axios.get(`https://us-central1-api-plants-b6153.cloudfunctions.net/app/coments/${id}`)
         .then((res) => {
-          console.log(res.data);
           setView(res.data);
         });
     }
@@ -80,6 +83,7 @@ const PlantsDetails = () => {
   function handleEdit(e) {
     e.preventDefault();
     navigate(`/plants/edit/${id}`);
+    window.scrollTo(0, {behavior: 'smooth'})
   }
   function handleComents(e) {
     e.preventDefault();
@@ -91,6 +95,29 @@ const PlantsDetails = () => {
   }
 
   function handleCart() {
+    if (cart.findIndex((e) => e.id === id) !== -1 || plant?.stock === 0) {
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "bottom-right",
+        iconColor: "white",
+        customClass: {
+          popup: "colored-toast",
+        },
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: false,
+      });
+      Promise.resolve(
+        Toast.fire({
+          icon: "info",
+          title:
+            plant?.stock === 0
+              ? `We don't have stock of this product!`
+              : `You already have this product in your cart!`,
+        })
+      );
+      return;
+    }
     Swal.fire({
       title: "Success",
       text: "Your product was successfully added to the cart",
@@ -139,8 +166,27 @@ const PlantsDetails = () => {
   }
 
   const handleOpen = () => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      return Swal.fire({
+        title: "Wait...",
+        text: "Your have to sign in to add a coment",
+        icon: "failure",
+        showDenyButton: false,
+        denyButtonText: "",
+        denyButtonColor: "rgba(11, 115, 147, 0.713)",
+        confirmButtonText: "Sign In",
+        confirmButtonColor: "rgb(9, 102, 74)",
+      }).then((res) => {
+        if (res.isConfirmed) {
+          navigate("/sign-in");
+        }
+      });
+    }
+    if (plant.logicalDeletion) {
+      return;
+    }
     const user = view.find((e) => e.data.userUID === currentUser.uid);
+
     if (user) {
       Promise.resolve(
         Swal.fire({
@@ -158,28 +204,53 @@ const PlantsDetails = () => {
     setOpen(true);
   };
   const handleOpenReview = () => {
-    if (!currentUser) return;
-    const user = view.find((e) => e.data.userUID === currentUser.uid);
-    if (!user) {
-      Promise.resolve(
-        Swal.fire({
-          title: "Eh",
-          text: "This plant still does not have any reviews",
-          icon: "info",
-          showDenyButton: false,
-          confirmButtonText: "ok",
-          confirmButtonColor: "rgb(9, 102, 74)",
-        })
-      );
+    //if (!currentUser) return;
+    // const user = view.find((e) => e.data.userUID === currentUser.uid);
+    // if (!currentUser) {
+    //   Promise.resolve(
+    //     Swal.fire({
+    //       title: "Eh",
+    //       text: "This plant still does not have any reviews",
+    //       icon: "info",
+    //       showDenyButton: false,
+    //       confirmButtonText: "ok",
+    //       confirmButtonColor: "rgb(9, 102, 74)",
+    //     })
+    // //   );
+    //   return;
+    //}
+    if (plant.logicalDeletion) {
       return;
     }
+    if (view.length === 0)
+      return Swal.fire(
+        "There are no comments, take the opportunity to leave one"
+      );
     setOpenReview(true);
   };
   const handleClose = () => setOpen(false);
   const handleCloseReview = () => setOpenReview(false);
+
   return plant?.name ? (
     <div className={s.container}>
-      <img src={plant?.image} alt="" />
+      <div className={s.button_container}>
+        <button onClick={() => navigate(-1)} className={s.back}>
+          <IoIosArrowBack />
+        </button>
+      </div>
+      <div>
+        <img src={plant?.image} alt="" />
+        {plant?.stock === 0 ? (
+          <div className={s.card_overstock}>
+            <p>Out of stock</p>
+          </div>
+        ) : null}
+        {plant?.logicalDeletion ? (
+          <div className={s.card_overstock}>
+            <p>Discontinued product</p>
+          </div>
+        ) : null}
+      </div>
       <div className={s.details}>
         <h1>{plant?.name} </h1>
         <div>
@@ -208,42 +279,67 @@ const PlantsDetails = () => {
                 </div>
               );
             })}
+          <div className={s.place}>
+            {plant?.place && plant?.place === "indoor" ? (
+              <SiThymeleaf className={s.place_icon} />
+            ) : (
+              <GiLindenLeaf className={s.place_icon} />
+            )}
+            <span>{plant?.place.toUpperCase()}</span>
+          </div>
         </div>
+        {plant?.small || plant?.medium || plant?.large ? (
+          <MoreSizes
+            idsmall={plant?.small}
+            idmedium={plant?.medium}
+            idlarge={plant?.large}
+          />
+        ) : null}
         <div className={s.price}>
           <div>
             <h4>Price</h4>
             <h3>$ {plant?.price}</h3>
           </div>
-          <div className={s.quantity}>
-            <button
-              disabled={
-                quantity === 1 || plant?.stock === 0 || plant?.logicalDeletion
-              }
-              onClick={() => setQuantity(quantity - 1)}
-            >
-              -
-            </button>
-            <p>{plant?.stock === 0 ? plant?.stock : quantity}</p>
-            <button
-              disabled={
-                quantity === plant?.stock ||
-                plant?.stock === 0 ||
-                plant?.logicalDeletion
-              }
-              onClick={() => setQuantity(quantity + 1)}
-            >
-              +
-            </button>
+          <div>
+            <h4>Stock</h4>
+            <span>{plant?.stock}</span>
           </div>
+          {plant?.stock > 0 ? (
+            <div className={s.quantity}>
+              <button
+                disabled={
+                  quantity === 1 || plant?.stock === 0 || plant?.logicalDeletion
+                }
+                onClick={() => setQuantity(quantity - 1)}
+              >
+                -
+              </button>
+              <p>{plant?.stock === 0 ? plant?.stock : quantity}</p>
+              <button
+                disabled={
+                  quantity === plant?.stock ||
+                  plant?.stock === 0 ||
+                  plant?.logicalDeletion
+                }
+                onClick={() => setQuantity(quantity + 1)}
+              >
+                +
+              </button>
+            </div>
+          ) : null}
         </div>
         <div className={s.favorites}>
           <h4>Add to favorites</h4>
-          <FavButton id={id} user={currentUser?.uid} />
+          <FavButton
+            id={id}
+            user={currentUser?.uid}
+            log={plant?.logicalDeletion}
+          />
           {!currentUser || currentUser?.role?.[0] === "user" ? null : (
             <div className={s.edit_btn}>
               <h4>Edit</h4>
               <button onClick={handleEdit}>
-                <FaRegEdit />
+                <RiEdit2Fill />
               </button>
             </div>
           )}
@@ -251,17 +347,21 @@ const PlantsDetails = () => {
         <div className={s.reviews_container}>
           <h4>Add a review</h4>
 
-          <AiFillStar className={s.star} onClick={handleOpen} />
-        </div>
-        <div>
-          {currentUser ? (
+          <AiFillStar className={s.star} close={setOpen} onClick={handleOpen} />
+          <div>
+            {/* {currentUser ? ( */}
             <div className={s.favorites}>
-              <h4>Watch reviews</h4>
+              <h4>See reviews</h4>
               <FaCommentDots className={s.hearth} onClick={handleOpenReview} />
             </div>
-          ) : (
-            <button onClick={handleRedirect}>Sign in to leave a review</button>
-          )}
+            {/* ) : (
+            // <button className={s.noreview} onClick={handleRedirect}>
+            //   Sign in to leave a review
+            // </button>
+            null
+          )
+          } */}
+          </div>
         </div>
 
         {cart.findIndex((e) => e.id === id) !== -1 && (
@@ -269,11 +369,7 @@ const PlantsDetails = () => {
         )}
 
         <button
-          disabled={
-            cart.findIndex((e) => e.id === id) !== -1 ||
-            plant?.stock === 0 ||
-            plant?.logicalDeletion
-          }
+          disabled={plant?.logicalDeletion}
           onClick={handleCart}
           className={s.cart}
         >
@@ -287,7 +383,7 @@ const PlantsDetails = () => {
             aria-describedby="modal-modal-description"
           >
             <Box sx={style}>
-              <Reviews setView={setView} />
+              <Reviews setView={setView} close={setOpen} handleClose={handleClose} />
             </Box>
           </Modal>
         </div>
@@ -299,7 +395,12 @@ const PlantsDetails = () => {
             aria-describedby="modal-modal-description"
           >
             <Box sx={styleReview}>
-              <View_Reviews view={view} />
+              <View_Reviews
+                setOpenReview={setOpenReview}
+                view={view}
+                user={currentUser?.uid}
+                setView={setView}
+              />
             </Box>
           </Modal>
         </div>

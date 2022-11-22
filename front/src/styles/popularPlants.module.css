@@ -4,7 +4,7 @@
     width: 100%; 
     max-width: 100%; 
     height: auto;
-    padding-top: 85px; 
+    padding-top: 40px; 
     background-image: linear-gradient(rgba(214, 215, 213, 0.657),rgb(80, 82, 80)), url("https://img.freepik.com/free-photo/monstera-leafy-nature-background-wallpaper_53876-103973.jpg?w=2000"); 
     background-size: cover;
     background-repeat: no-repeat;
@@ -20,6 +20,7 @@
     height: 109%; 
   
 }
+
 .list{
     margin-left: auto; 
     margin-right: auto; 
@@ -43,9 +44,8 @@
 .container_card{
     position: relative; 
     left: 150px;
-    width: 100%; 
+    width: 300px; 
     height: 100%; 
-    max-width: 50%; 
     margin-right: auto; 
     margin-left: auto; 
  
@@ -55,15 +55,16 @@
     width: 270px;
     margin-top: 10px;
     color: rgb(210, 210, 210);
+    width: 270px;
 }
 
 .card img{
     width: 100%;
+    height: 350px;
     caret-color: transparent;
 }
 .card_overlay{
     position: absolute;
-    margin-top: 10px;
     height: 350px;
     top: 0;
     bottom: 0;

@@ -1,39 +1,85 @@
 import React from "react";
 import { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {
+  sendEmailVerification,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { auth } from "../firebase/firebase";
 import { signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
 import s from "../styles/login.module.css";
 import diferent from "../images/diferent.webp";
-import { useDispatch, useSelector } from "react-redux";
-import { loadCart } from "../Redux/actions/shopCart";
+import ForgotenPassword from "./forgotenPassword";
+import Swal from "sweetalert2";
+import { useDispatch } from "react-redux";
 import { setCurrentUser } from "../Redux/actions/users";
+import { IoIosArrowBack } from "react-icons/io";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const history = useNavigate();
+  const [open, handleOpen] = useState(false);
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.usersReducer.currentUser);
+const navigate= useNavigate()
+  const redirectToPasswordReset = (e) => {
+    e.preventDefault();
+    handleOpen(true);
+  };
+  const handleVerify = () => {
+    const user = auth.currentUser;
+    dispatch(setCurrentUser(null));
+    history("/sign-in");
+    signOut(auth).then(() => {
+      const Toast = Swal.mixin({
+        toast: true,
+        position: "top-right",
+        iconColor: "white",
+        customClass: {
+          popup: "colored-toast",
+        },
+        showConfirmButton: true,
+        timer: 6000,
+        timerProgressBar: true,
+      });
+      Toast.fire({
+        icon: "info",
+        title: `Your account is not verified. Check your email and do the verification proccess. Press Ok if you want to resend the email!`,
+      }).then((res) => {
+        if (res.isConfirmed) {
+          sendEmailVerification(user);
+        }
+      });
+    });
+  };
 
   const handleLogin = () => {
     if (email !== null && password !== null) {
       signInWithEmailAndPassword(auth, email, password)
         .then(() => {
-          auth.currentUser.getIdTokenResult().then((user) => {
-            dispatch(
-              setCurrentUser({
-                ...auth.currentUser,
-                role: user.claims.role || "user",
-              })
-            );
-            auth.currentUser.emailVerified === false
-              ? history("/verification")
-              : history("/");
-          });
+          auth.currentUser.emailVerified === false
+            ? handleVerify()
+            : history("/");
         })
-        .catch((err) => alert(err));
+        .catch((err) => {
+          const Toast = Swal.mixin({
+            toast: true,
+            position: "top-right",
+            iconColor: "white",
+            customClass: {
+              popup: "colored-toast",
+            },
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: false,
+          });
+          Promise.resolve(
+            Toast.fire({
+              icon: "error",
+              title: `${err.message}`,
+            })
+          );
+        });
     }
   };
 
@@ -45,14 +91,38 @@ export default function Login() {
         const credential = GoogleAuthProvider.credentialFromResult(result);
         const token = credential.accessToken;
         const user = result.user;
-        dispatch(loadCart(auth.currentUser?.uid));
+        /* dispatch(loadCart(auth.currentUser?.uid)); */
         history("/");
       })
-      .catch((err) => alert(err));
+      .catch((err) => {
+        const Toast = Swal.mixin({
+          toast: true,
+          position: "top-right",
+          iconColor: "white",
+          customClass: {
+            popup: "colored-toast",
+          },
+          showConfirmButton: false,
+          timer: 2500,
+          timerProgressBar: false,
+        });
+        Promise.resolve(
+          Toast.fire({
+            icon: "error",
+            title: `${err.message}`,
+          })
+        );
+      });
   };
 
   return (
     <div className={s.container}>
+          <div className={s.button_container}>
+            <button onClick={()=>navigate(-1)} className={s.back}>
+              <IoIosArrowBack/>
+            </button>
+
+          </div>
       <div className={s.wraper}>
         <div className={s.login}>
           <div className={s.specs}>
@@ -88,7 +158,12 @@ export default function Login() {
                     Remember for 30 days
                   </label>
                 </div>
-                <button className={s.forgot_btn}>Forgot password</button>
+                <button
+                  onClick={redirectToPasswordReset}
+                  className={s.forgot_btn}
+                >
+                  Forgot password
+                </button>
               </div>
               <div className={s.sign_btn_container}>
                 <button onClick={handleLogin} className={s.sign_login}>
@@ -101,7 +176,7 @@ export default function Login() {
               <div className={s.register}>
                 <p>Don't have an account?</p>
                 <button>
-                  <Link to="/register">SIGN UP</Link>
+                  <Link to="/register" >SIGN UP</Link>
                 </button>
               </div>
             </div>
@@ -111,6 +186,7 @@ export default function Login() {
           <img src={diferent} alt="img" />
         </div>
       </div>
+      {open ? <ForgotenPassword close={handleOpen} /> : null}
     </div>
   );
 }

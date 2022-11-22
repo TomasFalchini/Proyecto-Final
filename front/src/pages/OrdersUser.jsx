@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import OrdersCard from "../components/OrdersCard";
 import s from "../styles/ordersUser.module.css";
 import image from "../images/designplant.webp";
@@ -8,6 +8,7 @@ import image from "../images/designplant.webp";
 import axios from "axios";
 import { BiReset } from "react-icons/bi";
 import { RiSearchLine } from "react-icons/ri";
+import { updateCart } from "../Redux/actions/shopCart";
 
 const OrdersUser = () => {
   const currentUser = useSelector((state) => state.usersReducer.currentUser);
@@ -16,37 +17,40 @@ const OrdersUser = () => {
   const [original, setOriginal] = useState([]);
   const [name, setName] = useState("");
   const [orden, setOrden] = useState("");
+  const dispatch = useDispatch();
+
+  const dataState = async () => {
+    try {
+      if (currentUser) {
+        let a = await axios.get(
+          `https://us-central1-api-plants-b6153.cloudfunctions.net/app/orders/${currentUser.uid}`
+        );
+        let result = a.data.map((item) => {
+          return {
+            state: item.data?.state,
+            userID: item.data?.userID,
+            orderid: item?.orderid,
+            date: item.data?.date,
+            data: item.data?.cart,
+            extras: item.data?.extras,
+          };
+        });
+        setState(result);
+        setAux(result);
+        setOriginal([...result]);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
-    if (currentUser) {
-      dataState();
-    }
+    dataState();
   }, [currentUser]);
 
   const handleUserInput = (e) => {
     e.preventDefault();
     setName(e.target.value);
-  };
-
-  const dataState = async () => {
-    if (currentUser) {
-      let a = await axios.get(
-        `https://us-central1-api-plants-b6153.cloudfunctions.net/app/orders/${currentUser.uid}`
-      );
-      let result = a.data.map((item) => {
-        return {
-          state: item.data?.state,
-          userID: item.data?.userID,
-          orderid: item?.orderid,
-          date: item.data?.date,
-          data: item.data?.cart,
-        };
-      });
-      setState(result);
-      setAux(result);
-      setOriginal([...result]);
-    }
-    return dataState;
   };
 
   const handleSearchName = async (e) => {
@@ -94,6 +98,28 @@ const OrdersUser = () => {
     setOrden(`${e.target.value}`);
   };
 
+  const updateOriginal = (newproducts) => {
+    const auxiliar = original.map((item) => {
+      if (item.state === "Pending") {
+        return {
+          ...item,
+          data: newproducts,
+        };
+      } else {
+        return item;
+      }
+    });
+    dispatch(updateCart(newproducts));
+    if (auxiliar.findIndex((item) => item.state === "Pending") < 0) {
+      dataState();
+    } else {
+      setOriginal([...auxiliar]);
+      setState([...auxiliar]);
+    }
+  };
+
+  // console.log("state", state)
+
   return (
     <div className={s.main}>
       <div className={s.favorites}>
@@ -129,13 +155,16 @@ const OrdersUser = () => {
             />
           </div>
           <div className={s.favorite_list}>
-            {state.map((ord) => (
+            {state.map((ord, i) => (
               <OrdersCard
                 orderid={ord?.orderid}
                 state={ord?.state}
                 userID={ord?.userID}
                 date={ord?.date}
                 data={ord?.data}
+                updateOriginal={updateOriginal}
+                extras={ord?.extras}
+                key={i}
               />
             ))}
           </div>

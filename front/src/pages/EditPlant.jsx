@@ -2,23 +2,27 @@ import React from "react";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { DeleteProduct, GetProductDetails } from "../Redux/actions/products";
+
+import {
+  clearDetails,
+  DeleteProduct,
+  GetProductDetails,
+} from "../Redux/actions/products";
 import { GiTable } from "react-icons/gi";
 import { TbPlant2 } from "react-icons/tb";
 import { FaDog } from "react-icons/fa";
+
 import Swal from "sweetalert2";
 import { useState } from "react";
-import { AiFillHeart } from "react-icons/ai";
 import { BsImageFill, BsEyeFill } from "react-icons/bs";
-
 import Loading from "../components/Loading";
-
 import { useRef } from "react";
 import s from "../styles/editPlant.module.css";
 import ShowProduct from "../components/ShowPlant";
 import { getPictureUrl, setPlantImage } from "../firebase/Controllers";
 import { validateEdit } from "../Util/validateEdit";
 import { editProduct } from "../Redux/actions/products";
+import { IoIosArrowBack } from "react-icons/io";
 
 const allCategories = ["easy care", "tabletop", "pet friendly"];
 const allSize = ["mini", "small", "medium", "large"];
@@ -62,7 +66,21 @@ const EditPlant = () => {
     dispatch(GetProductDetails(id)).then(() => {
       setIsLoading(false);
     });
+
+    return () => {
+      dispatch(clearDetails());
+    };
   }, [dispatch, id]);
+
+  useEffect(() => {
+    if (plant?.hasOwnProperty("name")) {
+      setInput({
+        ...input,
+        stock: plant.stock,
+        logicalDeletion: plant.logicalDeletion,
+      });
+    }
+  }, [plant]);
 
   const [error, setError] = useState({});
 
@@ -73,7 +91,7 @@ const EditPlant = () => {
     name: "",
     price: 0,
     size: [],
-    stock: 0,
+    stock: "0",
     //type: "",
     logicalDeletion: false,
   });
@@ -93,9 +111,13 @@ const EditPlant = () => {
     // console.log(id)
     if (fileReader && files && files.length > 0) {
       fileReader.readAsArrayBuffer(files[0]);
-      fileReader.onload = async function () {
+      fileReader.onload = async function() {
         const imageData = fileReader.result;
-
+        Swal.fire(
+          "Please wait a moment the image upload is being processed",
+          "",
+          "info"
+        );
         const res = await setPlantImage(id, imageData);
         console.log(res);
         const url = await getPictureUrl(id);
@@ -130,15 +152,14 @@ const EditPlant = () => {
       name: input.name !== "" ? input.name : plant.name,
       price: input.price !== 0 ? input.price : plant.price,
       size: input.size.length ? input.size[0] : plant.size,
-      stock: parseInt(input.stock) + parseInt(plant?.stock),
+      stock: parseInt(input.stock),
       // type: input.type,
-      logicalDeletion:
-        input.logicalDeletion !== plant.logicalDeletion
-          ? input.logicalDeletion
-          : plant.logicalDeletion,
+      logicalDeletion: input.logicalDeletion,
     };
     dispatch(editProduct(id, product));
-    navigate(-2);
+    dispatch(clearDetails());
+    navigate("/plants");
+    window.scrollTo(0, {behavior: 'smooth'})
   }
 
   const handleOnSubmitForMod = (e) => {
@@ -151,14 +172,14 @@ const EditPlant = () => {
       name: plant.name,
       price: plant.price,
       size: plant.size,
-      stock: parseInt(input.stock) + parseInt(plant?.stock),
+      stock: parseInt(input.stock),
       // type: input.type,
-      logicalDeletion:
-        input.logicalDeletion !== plant.logicalDeletion
-          ? input.logicalDeletion
-          : plant.logicalDeletion,
+      logicalDeletion: input.logicalDeletion,
     };
     dispatch(editProduct(id, product));
+    dispatch(clearDetails());
+    navigate("/plants");
+    window.scrollTo(0, {behavior: 'smooth'})
   };
 
   const handleCategories = (e) => {
@@ -228,8 +249,23 @@ const EditPlant = () => {
   };
 
   const handleDelete = () => {
-    dispatch(DeleteProduct(id));
-    navigate(-2);
+    Swal.fire({
+      title: "Warning",
+      text: "Are you sure you want to delete this plant?",
+      icon: "error",
+      showDenyButton: true,
+      denyButtonText: "No",
+      denyButtonColor: "#72CE65",
+      confirmButtonText: "Yes",
+      confirmButtonColor: "#FF5733",
+    }).then((res) => {
+      if (res.isConfirmed) {
+        dispatch(DeleteProduct(id));
+        dispatch(clearDetails());
+        navigate("/plants");
+        window.scrollTo(0, {behavior: 'smooth'})
+      }
+    });
   };
 
   return (
@@ -239,6 +275,14 @@ const EditPlant = () => {
           <Loading />
         ) : (
           <div className={s.container}>
+
+                  <div className={s.button_container}>
+            <button onClick={()=>navigate(`/plants/details/${id}`)} className={s.back}>
+              <IoIosArrowBack/>
+            </button>
+
+          </div>
+
             <div className={s.wraper}>
               <div className={s.left}>
                 <form onSubmit={handleOnSubmit} className={s.form}>
@@ -315,6 +359,7 @@ const EditPlant = () => {
                       type="number"
                       name="stock"
                       placeholder="stock"
+                      value={input.stock}
                       onChange={handleStock}
                       min="0"
                       max="1000000"
@@ -400,31 +445,34 @@ const EditPlant = () => {
                   )}
 
                   {currentUser?.role[0] === "moderator" ? (
-                    <button type="button" onClick={handleOnSubmitForMod}>
-                      Update Stock
+                    <button
+                      type="button"
+                      className={s.create_btn}
+                      onClick={handleOnSubmitForMod}
+                    >
+                      UPDATE STOCK
                     </button>
                   ) : null}
                 </form>
               </div>
-
-              <div className={s.right}>
-                <ShowProduct
-                  image={image || plant?.image}
-                  name={input.name || plant?.name}
-                  details={input.details || plant?.details}
-                  categories={
-                    (input.categories.length && input.categories) ||
-                    plant?.categories
-                  }
-                  price={(input.price !== 0 && input.price) || plant?.price}
-                  logicalDeletion={
-                    input.logicalDeletion || plant?.logicalDeletion
-                  }
-                  type={plant?.type}
-                  stock={parseInt(input.stock) + parseInt(plant?.stock)}
-                  size={(input.size.length && input.size) || plant?.size}
-                />
-              </div>
+              {!isLoading ? (
+                <div className={s.right}>
+                  <ShowProduct
+                    image={image || plant?.image}
+                    name={input.name || plant?.name}
+                    details={input.details || plant?.details}
+                    categories={
+                      (input.categories.length && input.categories) ||
+                      plant?.categories
+                    }
+                    price={(input.price !== 0 && input.price) || plant?.price}
+                    logicalDeletion={input.logicalDeletion}
+                    type={plant?.type}
+                    stock={parseInt(input.stock)}
+                    size={(input.size.length && input.size) || plant?.size}
+                  />
+                </div>
+              ) : null}
             </div>
           </div>
         )}

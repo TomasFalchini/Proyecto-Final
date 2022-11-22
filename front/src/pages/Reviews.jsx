@@ -3,7 +3,6 @@ import { useSelector, useDispatch } from "react-redux";
 import s from "../styles/create.module.css";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { AiFillStar } from "react-icons/ai";
-// import { validateComent } from "../Util/validateComent";
 import axios from "axios";
 import { setCurrentUser } from "../Redux/actions/users";
 import { auth } from "../firebase/firebase";
@@ -12,7 +11,11 @@ import Rating from "@mui/material/Rating";
 import Typography from "@mui/material/Typography";
 import Swal from "sweetalert2";
 
-const Reviews = ({ setView }) => {
+import avatar from "../images/avatar 1.gif"
+import { IoIosArrowBack } from "react-icons/io";
+
+
+const Reviews = ({ setView, close,handleClose }) => {
   const dispatch = useDispatch();
   const Navigate = useNavigate();
   const id = useParams().id;
@@ -32,6 +35,7 @@ const Reviews = ({ setView }) => {
   //const [state, setState] = useState([])
 
   const positive = [
+    "That's Not What I Expected",
     "Very Good Plant",
     "Highly Recommended",
     "Withstand Any Temperature",
@@ -52,12 +56,6 @@ const Reviews = ({ setView }) => {
           ...coments,
           comentspositive: [e.target.value],
         });
-      // setError(
-      //     validateComent({
-      //         ...coments,
-      //         comentspositive: [e.target.value],
-      //     })
-      // );
     }
   };
 
@@ -70,47 +68,67 @@ const Reviews = ({ setView }) => {
 
   const handleOnClick = (e) => {
     e.preventDefault();
-    // let response = await axios.post(
-    //     "http://localhost:5000/api-plants-b6153/us-central1/app/coments/coment",
-    //     // "https://us-central1-api-plants-b6153.cloudfunctions.net/app/coments/coment",
-    //     coments
-    // );
-    // alert("Comments created")
+
     if (!coments.comentspositive.length || !coments.star) {
-      return alert("Missing Data");
-    }
-    axios
-      .post(
-        "https://us-central1-api-plants-b6153.cloudfunctions.net/app/coments/coment",
-        {
-          star: coments.star,
-          plantsUID: coments.plantsUID,
-          userUID: coments.userUID,
-          comentspositive: coments.comentspositive,
-          userName: coments.userName,
-          userImg: coments.userImg,
-        }
-      )
-      .then((res) => {
-        Swal.fire({
-          title: "Success",
-          text: "Your comment was successfully added",
-          icon: "success",
-          confirmButtonText: "ok",
-          confirmButtonColor: "rgb(9, 102, 74)",
-        });
-        setView((prevstate) => [...prevstate, res.data]);
-      })
-      .then(() => {
-        Navigate(`/plants/details/${id}`);
+      // Swal.fire("Missing Data");
+      Swal.fire({
+        title: "Eh",
+        text: "You must enter some information",
+        icon: "info",
+        showDenyButton: false,
+        confirmButtonText: "ok",
+        confirmButtonColor: "rgb(9, 102, 74)",
       });
+    } else {
+      axios
+        .post(
+          "https://us-central1-api-plants-b6153.cloudfunctions.net/app/coments/coment",
+          {
+            star: coments.star,
+            plantsUID: coments.plantsUID,
+            userUID: coments.userUID,
+            comentspositive: coments.comentspositive,
+            userName: coments.userName,
+            userImg: coments.userImg,
+          }
+        )
+        .then((res) => {
+          close(false);
+          Swal.fire({
+            title: "Success",
+            text: "Your comment was successfully added",
+            icon: "success",
+            confirmButtonText: "ok",
+            confirmButtonColor: "rgb(9, 102, 74)",
+          });
+          setView((prevstate) => [...prevstate, res.data]);
+        })
+        .then(() => {
+          Navigate(`/plants/details/${id}`);
+        });
+    }
   };
 
   return (
     <div className={s.container}>
+      
       <form className={s.form}>
+      <div className={s.button_container}>
+            <button onClick={()=>handleClose(true)} className={s.back}>
+              <IoIosArrowBack/>
+            </button>
+
+          </div>
         <h2>Leave Your Comment</h2>
-        <img src={user?.photoURL} className={s.userPic} alt="do not pose" />
+        <img
+          src={user?.photoURL || avatar}
+          onError={({ currentTarget }) => {
+            currentTarget.onerror = null;
+            currentTarget.src = "https://i.stack.imgur.com/4powQ.gif";
+          }}
+          className={s.userPic}
+          alt="do not pose"
+        />
         <h3>{user?.displayName}</h3>
 
         <div>
