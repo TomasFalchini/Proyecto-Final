@@ -27,6 +27,7 @@ const OrdersCard = (props) => {
       if (result.isConfirmed) {
         let a = [];
         let b = [];
+
         // console.log("cart", cart);
         // console.log("auxCart", auxCart)
 
@@ -36,15 +37,17 @@ const OrdersCard = (props) => {
             allProducts.forEach((product) => {
               if (item.id === product.id) {
                 if (item.count > product.data.stock) {
-                  result.push({
-                    ...item,
-                    stock: product.data.stock,
-                    count: product.data.stock,
-                  });
-                  b.push({
-                    name: item.name,
-                    count: product.data.stock,
-                  });
+                  if (product.data.stock && !product.data.logicalDeletion) {
+                    result.push({
+                      ...item,
+                      stock: product.data.stock,
+                      count: product.data.stock,
+                    });
+                    b.push({
+                      name: item.name,
+                      count: product.data.stock,
+                    });
+                  }
                 } else {
                   result.push({
                     ...item,
@@ -130,8 +133,6 @@ const OrdersCard = (props) => {
           };
         }
 
-        console.log("a", a);
-
         if (b.length > 0) {
           dispatch(saveCart(a, currentUser.uid));
           props.updateOriginal(a);
@@ -142,7 +143,8 @@ const OrdersCard = (props) => {
               (item) => {
                 return ` ${item.name}: ${item.count} `;
               }
-            )}`,
+            )}
+           }`,
           });
         } else {
           dispatch(saveCart(a, currentUser.uid));
