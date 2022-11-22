@@ -106,7 +106,7 @@ const libraries = ["places"];
 function GoogleMaps({ retiro, andreani, city }) {
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: "AIzaSyC7LOjNhZNLi81lGf5YgmwGDqLeTm7EjPU",
+    googleMapsApiKey: "",
     libraries: libraries,
   });
   const [map, setMap] = React.useState(null);
@@ -145,44 +145,43 @@ function GoogleMaps({ retiro, andreani, city }) {
           }}
         >
           <div className={s.search_city}>
-            <h4 >Search your city to find a Calathea Market!</h4>
+            <h4>Search your city to find a Calathea Market!</h4>
             <input className={s.inputs} type="text" defaultValue={city} />
           </div>
         </StandaloneSearchBox>
       ) : null}
       <div className={s.google}>
-        
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={center}
-        zoom={zoom}
-        options={{
-          streetViewControl: false,
-          mapTypeControl: false,
-          fullscreenControl: false,
-        }}
-        onLoad={(map) => setMap(map)}
-      >
-        <Marker position={marker1} label={title} />
-        <Marker position={marker2} label={title} />
-        <Marker position={marker3} label={title} />
-        <Marker position={marker4} label={title} />
-        <Marker position={marker5} label={title} />
-        <Marker position={marker6} label={title} />
-        <Marker position={marker7} label={title} />
-        <Marker position={marker8} label={title} />
-        <Marker position={marker9} label={title} />
-        <Marker position={marker10} label={title} />
-        <Marker position={marker11} label={title} />
-        <Marker position={marker12} label={title} />
-        <Marker position={marker13} label={title} />
-        <Marker position={marker14} label={title} />
-        <Marker position={marker15} label={title} />
-        <Marker position={marker16} label={title} />
-        {andreani ? (
-          <Marker position={center} label={"You"} draggable={true} />
-        ) : null}
-      </GoogleMap>
+        <GoogleMap
+          mapContainerStyle={containerStyle}
+          center={center}
+          zoom={zoom}
+          options={{
+            streetViewControl: false,
+            mapTypeControl: false,
+            fullscreenControl: false,
+          }}
+          onLoad={(map) => setMap(map)}
+        >
+          <Marker position={marker1} label={title} />
+          <Marker position={marker2} label={title} />
+          <Marker position={marker3} label={title} />
+          <Marker position={marker4} label={title} />
+          <Marker position={marker5} label={title} />
+          <Marker position={marker6} label={title} />
+          <Marker position={marker7} label={title} />
+          <Marker position={marker8} label={title} />
+          <Marker position={marker9} label={title} />
+          <Marker position={marker10} label={title} />
+          <Marker position={marker11} label={title} />
+          <Marker position={marker12} label={title} />
+          <Marker position={marker13} label={title} />
+          <Marker position={marker14} label={title} />
+          <Marker position={marker15} label={title} />
+          <Marker position={marker16} label={title} />
+          {andreani ? (
+            <Marker position={center} label={"You"} draggable={true} />
+          ) : null}
+        </GoogleMap>
       </div>
     </div>
   ) : (

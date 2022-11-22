@@ -1,17 +1,8 @@
 const { db, admin } = require("../config/firebase.js");
 const nodemailer = require("nodemailer");
 
-let transporter = nodemailer.createTransport({
-  host: "smtp.sendgrid.net",
-  port: 465,
-  auth: {
-    user: "apikey",
-    pass: "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",
-  },
-});
-
 module.exports = async function postOrder(orderid, cart, state, extras, email) {
-  console.log(state)
+  console.log(state);
   const order = {
     state: state,
     date: admin.firestore.FieldValue.serverTimestamp(),
@@ -34,7 +25,6 @@ module.exports = async function postOrder(orderid, cart, state, extras, email) {
         });
     });
     await Promise.all(promises);
-
 
     const mailOptions = {
       from: "Calathea Markets <tom_cremoso@hotmail.com>",
@@ -62,9 +52,11 @@ module.exports = async function postOrder(orderid, cart, state, extras, email) {
     });
   }
 
-
-  if (state === "Order preparing" || state === "Order shipped" || state === "Order ready to pick up") {
-    
+  if (
+    state === "Order preparing" ||
+    state === "Order shipped" ||
+    state === "Order ready to pick up"
+  ) {
     const mailOptions = {
       from: "Calathea Markets <tom_cremoso@hotmail.com>",
       to: email,
@@ -87,7 +79,6 @@ module.exports = async function postOrder(orderid, cart, state, extras, email) {
       }
     });
   }
-  
 
   const reference = db.collection("orders").doc(orderid);
   await reference.update(order);
